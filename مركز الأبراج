@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0d1b2a">
+<title>متجر الأبراج</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; font-family:'Segoe UI','Tahoma',sans-serif; }
+  body { background:#f5f7fa; color:#0d1b2a; padding-bottom:70px; }
+
+  /* Header */
+  header {
+    background:linear-gradient(135deg,#0d1b2a,#1b263b);
+    color:#fff; padding:14px 16px; position:sticky; top:0; z-index:100;
+    box-shadow:0 2px 12px rgba(0,0,0,.25);
+    display:flex; align-items:center; justify-content:space-between;
+  }
+  header .logo { display:flex; align-items:center; gap:10px; font-weight:700; font-size:18px; }
+  header .logo span:first-child { font-size:24px; }
+  header .actions { display:flex; gap:14px; font-size:20px; }
+  header .actions button { background:none; border:none; color:#fff; font-size:22px; cursor:pointer; position:relative; }
+  #cartBadge {
+    position:absolute; top:-6px; left:-8px; background:#f59e0b; color:#0d1b2a;
+    font-size:11px; font-weight:700; border-radius:50%; min-width:18px; height:18px;
+    display:flex; align-items:center; justify-content:center; padding:0 4px;
+  }
+
+  /* Search */
+  .search-box { padding:12px 16px; background:#fff; }
+  .search-box input {
+    width:100%; padding:10px 14px; border:1px solid #e2e8f0; border-radius:10px;
+    background:#f8fafc; font-size:14px; outline:none;
+  }
+
+  /* Categories */
+  .cats { display:flex; gap:8px; padding:10px 16px; overflow-x:auto; background:#fff; scrollbar-width:none; }
+  .cats::-webkit-scrollbar { display:none; }
+  .cat {
+    padding:7px 14px; background:#f1f5f9; border-radius:20px; font-size:13px;
+    white-space:nowrap; cursor:pointer; border:1px solid transparent; color:#475569;
+  }
+  .cat.active { background:#0d1b2a; color:#fff; }
+
+  /* Hero */
+  .hero {
+    margin:12px 16px; padding:18px; border-radius:14px;
+    background:linear-gradient(135deg,#f59e0b,#d97706);
+    color:#0d1b2a; text-align:center;
+  }
+  .hero h2 { font-size:18px; margin-bottom:4px; }
+  .hero p { font-size:13px; opacity:.85; }
+
+  /* Section title */
+  .section-title { padding:14px 16px 6px; font-size:16px; font-weight:700; display:flex; align-items:center; gap:8px; }
+
+  /* Products grid */
+  .products { display:grid; grid-template-columns:repeat(2,1fr); gap:12px; padding:10px 16px 20px; }
+  .product {
+    background:#fff; border-radius:14px; overflow:hidden; cursor:pointer;
+    box-shadow:0 2px 8px rgba(0,0,0,.06); transition:transform .15s;
+    display:flex; flex-direction:column;
+  }
+  .product:active { transform:scale(.97); }
+  .product .img-wrap { width:100%; aspect-ratio:1/1; background:#f1f5f9; overflow:hidden; position:relative; }
+  .product .img-wrap img, .product .img-wrap video { width:100%; height:100%; object-fit:cover; display:block; }
+  .badge-video {
+    position:absolute; top:8px; right:8px; background:rgba(0,0,0,.7); color:#fff;
+    font-size:10px; padding:3px 7px; border-radius:6px;
+  }
+  .product .info { padding:10px; flex:1; display:flex; flex-direction:column; }
+  .product .name { font-size:13px; font-weight:600; margin-bottom:6px; line-height:1.4; min-height:36px; }
+  .product .price { color:#d97706; font-weight:700; font-size:16px; }
+  .product .old-price { font-size:12px; color:#94a3b8; text-decoration:line-through; margin-inline-start:6px; }
+  .product .add-btn {
+    margin-top:8px; padding:8px; background:#0d1b2a; color:#fff; border:none;
+    border-radius:8px; font-size:12px; font-weight:600; cursor:pointer;
+  }
+  .empty { text-align:center; padding:60px 20px; color:#94a3b8; grid-column:1/-1; }
+  .empty div { font-size:50px; margin-bottom:12px; }
+
+  /* Bottom nav */
+  nav {
+    position:fixed; bottom:0; left:0; right:0; background:#fff; display:flex;
+    border-top:1px solid #e2e8f0; z-index:100; padding:6px 0;
+  }
+  nav button {
+    flex:1; background:none; border:none; padding:8px 4px; font-size:11px;
+    color:#64748b; cursor:pointer; display:flex; flex-direction:column;
+    align-items:center; gap:3px; font-weight:600;
+  }
+  nav button i { font-style:normal; font-size:20px; }
+  nav button.active { color:#0d1b2a; }
+
+  /* Modal */
+  .modal-bg {
+    position:fixed; inset:0; background:rgba(0,0,0,.6); z-index:200;
+    display:none; align-items:flex-end; justify-content:center;
+  }
+  .modal-bg.show { display:flex; }
+  .modal {
+    background:#fff; width:100%; max-width:560px; max-height:92vh; overflow-y:auto;
+    border-radius:20px 20px 0 0; padding:0; animation:slideUp .25s;
+  }
+  @keyframes slideUp { from { transform:translateY(100%); } to { transform:translateY(0); } }
+  .modal .close {
+    position:absolute; top:12px; left:12px; background:rgba(255,255,255,.95);
+    border:none; width:34px; height:34px; border-radius:50%; font-size:20px;
+    cursor:pointer; z-index:10; box-shadow:0 2px 8px rgba(0,0,0,.2);
+  }
+  .modal-header { position:relative; }
+
+  .media-gallery { width:100%; aspect-ratio:1/1; background:#0d1b2a; }
+  .media-gallery img, .media-gallery video { width:100%; height:100%; object-fit:cover; }
+
+  .thumb-strip { display:flex; gap:8px; padding:10px 16px; overflow-x:auto; background:#f8fafc; }
+  .thumb-strip::-webkit-scrollbar { display:none; }
+  .thumb { width:56px; height:56px; border-radius:8px; overflow:hidden; border:2px solid transparent; cursor:pointer; flex-shrink:0; background:#e2e8f0; }
+  .thumb.active { border-color:#d97706; }
+  .thumb img, .thumb video { width:100%; height:100%; object-fit:cover; }
+
+  .modal-body { padding:16px; }
+  .modal-body h2 { font-size:18px; margin-bottom:8px; }
+  .modal-body .price-row { display:flex; align-items:center; margin-bottom:12px; }
+  .modal-body .price { color:#d97706; font-size:22px; font-weight:700; }
+  .modal-body .desc { font-size:13px; color:#475569; line-height:1.7; margin-bottom:16px; }
+  .qty-row { display:flex; align-items:center; gap:14px; margin-bottom:16px; }
+  .qty-row button {
+    width:36px; height:36px; border:1px solid #cbd5e1; background:#fff;
+    border-radius:8px; font-size:18px; cursor:pointer; color:#0d1b2a;
+  }
+  .qty-row span { font-size:16px; font-weight:700; min-width:30px; text-align:center; }
+
+  .btn-primary {
+    width:100%; padding:14px; background:#0d1b2a; color:#fff; border:none;
+    border-radius:10px; font-size:15px; font-weight:700; cursor:pointer; margin-bottom:8px;
+  }
+  .btn-wa { background:#25D366; }
+  .btn-orange { background:#f59e0b; color:#0d1b2a; }
+
+  /* Cart */
+  .cart-item { display:flex; gap:12px; padding:12px 16px; border-bottom:1px solid #f1f5f9; }
+  .cart-item img { width:70px; height:70px; border-radius:10px; object-fit:cover; }
+  .cart-item .info { flex:1; }
+  .cart-item .info h4 { font-size:13px; margin-bottom:4px; }
+  .cart-item .info .p { color:#d97706; font-weight:700; font-size:14px; }
+  .cart-item .remove { background:none; border:none; color:#ef4444; font-size:18px; cursor:pointer; }
+  .cart-total { padding:16px; background:#f8fafc; margin-top:8px; }
+  .cart-total .row { display:flex; justify-content:space-between; margin-bottom:8px; font-size:14px; }
+  .cart-total .row.total { font-size:18px; font-weight:700; color:#0d1b2a; border-top:1px solid #e2e8f0; padding-top:10px; margin-top:10px; }
+
+  /* Form */
+  .form-group { padding:0 16px 12px; }
+  .form-group label { display:block; font-size:13px; font-weight:600; margin-bottom:6px; color:#334155; }
+  .form-group input, .form-group textarea, .form-group select {
+    width:100%; padding:11px 13px; border:1px solid #e2e8f0; border-radius:10px;
+    font-size:14px; outline:none; background:#fff; font-family:inherit;
+  }
+  .form-group textarea { min-height:80px; resize:vertical; }
+  .file-input-wrap {
+    border:2px dashed #cbd5e1; border-radius:10px; padding:20px; text-align:center;
+    cursor:pointer; background:#f8fafc; font-size:13px; color:#64748b;
+  }
+  .file-input-wrap input { display:none; }
+  .preview-list { display:flex; gap:8px; flex-wrap:wrap; margin-top:10px; }
+  .preview-item { position:relative; width:64px; height:64px; border-radius:8px; overflow:hidden; background:#e2e8f0; }
+  .preview-item img, .preview-item video { width:100%; height:100%; object-fit:cover; }
+  .preview-item .del {
+    position:absolute; top:2px; left:2px; background:rgba(239,68,68,.9); color:#fff;
+    border:none; width:20px; height:20px; border-radius:50%; font-size:12px; cursor:pointer;
+  }
+
+  /* Toast */
+  .toast {
+    position:fixed; bottom:90px; left:50%; transform:translateX(-50%) translateY(100px);
+    background:#0d1b2a; color:#fff; padding:12px 22px; border-radius:30px;
+    font-size:13px; z-index:999; opacity:0; transition:.3s; pointer-events:none;
+    white-space:nowrap;
+  }
+  .toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+
+  /* WhatsApp Float */
+  .wa-float {
+    position:fixed; bottom:80px; left:16px; background:#25D366; color:#fff;
+    width:54px; height:54px; border-radius:50%; display:flex; align-items:center;
+    justify-content:center; font-size:26px; box-shadow:0 4px 16px rgba(37,211,102,.4);
+    z-index:99; cursor:pointer; text-decoration:none;
+  }
+
+  /* Success screen */
+  .success {
+    text-align:center; padding:50px 30px;
+  }
+  .success .check { font-size:70px; margin-bottom:16px; }
+  .success h2 { font-size:20px; margin-bottom:10px; }
+  .success p { color:#64748b; font-size:14px; margin-bottom:24px; line-height:1.7; }
+
+  .payment-methods { display:flex; gap:8px; flex-wrap:wrap; padding:0 16px 14px; }
+  .payment-methods .pm {
+    flex:1; min-width:100px; padding:12px; border:2px solid #e2e8f0; border-radius:10px;
+    text-align:center; font-size:12px; cursor:pointer; background:#fff;
+  }
+  .payment-methods .pm.active { border-color:#f59e0b; background:#fffbeb; }
+  .payment-methods .pm div { font-size:22px; margin-bottom:4px; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo"><span>🏪</span><span>متجر الأبراج</span></div>
+  <div class="actions">
+    <button onclick="openAdmin()">⚙️</button>
+  </div>
+</header>
+
+<!-- Home Page -->
+<div id="page-home">
+  <div class="search-box">
+    <input type="text" id="searchInput" placeholder="🔍 ابحث عن منتج..." oninput="renderProducts()">
+  </div>
+  <div class="cats" id="catsBar">
+    <div class="cat active" onclick="setCat('الكل',this)">الكل</div>
+    <div class="cat" onclick="setCat('جوالات',this)">📱 جوالات</div>
+    <div class="cat" onclick="setCat('سماعات',this)">🎧 سماعات</div>
+    <div class="cat" onclick="setCat('شواحن',this)">🔌 شواحن</div>
+    <div class="cat" onclick="setCat('كفرات',this)">🛡️ كفرات</div>
+    <div class="cat" onclick="setCat('شاشات',this)">📺 شاشات</div>
+    <div class="cat" onclick="setCat('إكسسوارات',this)">✨ إكسسوارات</div>
+  </div>
+
+  <div class="hero">
+    <h2>مرحبًا بك في متجر الأبراج 🌟</h2>
+    <p>أفضل الجوالات والإكسسوارات بأفضل الأسعار</p>
+  </div>
+
+  <div class="section-title">🛍️ المنتجات</div>
+  <div class="products" id="productsGrid"></div>
+</div>
+
+<!-- Cart Page -->
+<div id="page-cart" style="display:none">
+  <div class="section-title">🛒 سلة التسوق</div>
+  <div id="cartList"></div>
+  <div class="cart-total" id="cartTotal" style="display:none">
+    <div class="row"><span>المجموع الفرعي:</span><span id="subtotal">0 ر.ي</span></div>
+    <div class="row"><span>الشحن:</span><span>حسب المنطقة</span></div>
+    <div class="row total"><span>الإجمالي:</span><span id="total">0 ر.ي</span></div>
+    <button class="btn-primary btn-orange" style="margin-top:14px" onclick="openCheckout()">💳 إتمام الطلب</button>
+  </div>
+</div>
+
+<!-- Orders Page -->
+<div id="page-orders" style="display:none">
+  <div class="section-title">📦 طلباتي</div>
+  <div id="ordersList" style="padding:0 0 20px"></div>
+</div>
+
+<!-- Contact Page -->
+<div id="page-contact" style="display:none">
+  <div class="section-title">📞 تواصل معنا</div>
+  <div style="padding:16px">
+    <div class="hero" style="margin:0 0 16px">
+      <h2>متجر الأبراج</h2>
+      <p>نحن هنا لخدمتك في أي وقت</p>
+    </div>
+    <div style="background:#fff; border-radius:14px; padding:16px; box-shadow:0 2px 8px rgba(0,0,0,.06)">
+      <div style="display:flex; align-items:center; gap:12px; padding:12px 0; border-bottom:1px solid #f1f5f9">
+        <div style="font-size:24px">📱</div>
+        <div><div style="font-size:12px; color:#64748b">واتساب / اتصال</div>
+        <div style="font-weight:700">774766461</div></div>
+      </div>
+      <div style="display:flex; align-items:center; gap:12px; padding:12px 0; border-bottom:1px solid #f1f5f9">
+        <div style="font-size:24px">✉️</div>
+        <div><div style="font-size:12px; color:#64748b">البريد الإلكتروني</div>
+        <div style="font-weight:700">info@alabraj.store</div></div>
+      </div>
+      <div style="display:flex; align-items:center; gap:12px; padding:12px 0">
+        <div style="font-size:24px">⏰</div>
+        <div><div style="font-size:12px; color:#64748b">أوقات العمل</div>
+        <div style="font-weight:700">يوميًا 9ص - 11م</div></div>
+      </div>
+    </div>
+    <button class="btn-primary btn-wa" style="margin-top:16px" onclick="contactWA('مرحبًا، أريد الاستفسار عن منتجات متجر الأبراج')">💬 تواصل عبر واتساب</button>
+    <a href="tel:774766461" style="display:block; text-decoration:none"><button class="btn-primary">📞 اتصل بنا</button></a>
+  </div>
+</div>
+
+<!-- Bottom Nav -->
+<nav>
+  <button class="active" data-page="home" onclick="switchPage('home')"><i>🏠</i>الرئيسية</button>
+  <button data-page="cart" onclick="switchPage('cart')"><i>🛒</i>السلة <span id="navCartBadge" style="background:#ef4444;color:#fff;border-radius:50%;padding:0 6px;font-size:10px;display:none">0</span></button>
+  <button data-page="orders" onclick="switchPage('orders')"><i>📦</i>طلباتي</button>
+  <button data-page="contact" onclick="switchPage('contact')"><i>📞</i>تواصل</button>
+</nav>
+
+<a class="wa-float" onclick="contactWA('مرحبًا، أريد الاستفسار من متجر الأبراج')">💬</a>
+
+<!-- Product Detail Modal -->
+<div class="modal-bg" id="productModal" onclick="if(event.target===this)closeModal('productModal')">
+  <div class="modal" id="productModalContent"></div>
+</div>
+
+<!-- Admin Modal -->
+<div class="modal-bg" id="adminModal" onclick="if(event.target===this)closeModal('adminModal')">
+  <div class="modal">
+    <div style="padding:20px 16px; border-bottom:1px solid #f1f5f9; display:flex; justify-content:space-between; align-items:center">
+      <h2 style="font-size:17px">⚙️ لوحة الإدارة</h2>
+      <button onclick="closeModal('adminModal')" style="background:none;border:none;font-size:24px;cursor:pointer;color:#64748b">✕</button>
+    </div>
+    <div style="padding:16px 0">
+      <div class="form-group">
+        <label>اسم المنتج *</label>
+        <input type="text" id="pName" placeholder="مثال: iPhone 15 Pro Max">
+      </div>
+      <div class="form-group">
+        <label>الفئة *</label>
+        <select id="pCat">
+          <option>جوالات</option><option>سماعات</option><option>شواحن</option>
+          <option>كفرات</option><option>شاشات</option><option>إكسسوارات</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>السعر (ر.ي) *</label>
+        <input type="number" id="pPrice" placeholder="مثال: 150000">
+      </div>
+      <div class="form-group">
+        <label>السعر قبل الخصم (اختياري)</label>
+        <input type="number" id="pOldPrice" placeholder="مثال: 200000">
+      </div>
+      <div class="form-group">
+        <label>الوصف</label>
+        <textarea id="pDesc" placeholder="وصف تفصيلي للمنتج..."></textarea>
+      </div>
+      <div class="form-group">
+        <label>📷 صور المنتج (يمكن اختيار أكثر من صورة)</label>
+        <label class="file-input-wrap">
+          <input type="file" id="pImages" accept="image/*" multiple onchange="handleImages(event)">
+          <div>اضغط لاختيار الصور</div>
+        </label>
+        <div class="preview-list" id="previewList"></div>
+      </div>
+      <div class="form-group">
+        <label>🎥 فيديو المنتج (اختياري)</label>
+        <label class="file-input-wrap">
+          <input type="file" id="pVideo" accept="video/*" onchange="handleVideo(event)">
+          <div>اضغط لاختيار فيديو</div>
+        </label>
+        <div class="preview-list" id="videoPreview"></div>
+      </div>
+      <div class="form-group">
+        <button class="btn-primary btn-orange" onclick="saveProduct()">💾 حفظ المنتج</button>
+      </div>
+      <div style="padding:0 16px">
+        <h3 style="font-size:14px; margin-bottom:10px; color:#334155">المنتجات المضافة (<span id="adminCount">0</span>)</h3>
+        <div id="adminProductsList" style="max-height:200px; overflow-y:auto"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Checkout Modal -->
+<div class="modal-bg" id="checkoutModal" onclick="if(event.target===this)closeModal('checkoutModal')">
+  <div class="modal">
+    <div style="padding:20px 16px; border-bottom:1px solid #f1f5f9; display:flex; justify-content:space-between; align-items:center">
+      <h2 style="font-size:17px">💳 إتمام الطلب</h2>
+      <button onclick="closeModal('checkoutModal')" style="background:none;border:none;font-size:24px;cursor:pointer;color:#64748b">✕</button>
+    </div>
+    <div style="padding:16px 0 24px">
+      <div class="form-group"><label>الاسم الكامل *</label><input type="text" id="oName" placeholder="اسمك الكامل"></div>
+      <div class="form-group"><label>رقم الجوال *</label><input type="tel" id="oPhone" placeholder="7XXXXXXXX"></div>
+      <div class="form-group"><label>المدينة *</label><input type="text" id="oCity" placeholder="مثال: صنعاء"></div>
+      <div class="form-group"><label>العنوان بالتفصيل *</label><textarea id="oAddress" placeholder="الحي - الشارع - علامة مميزة"></textarea></div>
+      <div class="form-group"><label>طريقة الدفع</label></div>
+      <div class="payment-methods">
+        <div class="pm active" data-pm="الدفع عند الاستلام" onclick="selectPM(this)"><div>💵</div>الدفع عند الاستلام</div>
+        <div class="pm" data-pm="تحويل بنكي" onclick="selectPM(this)"><div>🏦</div>تحويل بنكي</div>
+        <div class="pm" data-pm="محفظة إلكترونية" onclick="selectPM(this)"><div>📱</div>محفظة إلكترونية</div>
+      </div>
+      <div class="form-group">
+        <label>ملاحظات (اختياري)</label>
+        <textarea id="oNotes" placeholder="أي ملاحظة إضافية..."></textarea>
+      </div>
+      <div class="form-group">
+        <button class="btn-primary btn-orange" onclick="placeOrder()">✅ تأكيد الطلب</button>
+        <button class="btn-primary btn-wa" onclick="placeOrder(true)">💬 إرسال الطلب عبر واتساب</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ========== Data ========== */
+const STORE_PHONE = '774766461';
+let products = JSON.parse(localStorage.getItem('alabraj_products') || '[]');
+let cart = JSON.parse(localStorage.getItem('alabraj_cart') || '[]');
+let orders = JSON.parse(localStorage.getItem('alabraj_orders') || '[]');
+let currentCat = 'الكل';
+let currentPM = 'الدفع عند الاستلام';
+let tempImages = [];
+let tempVideo = null;
+
+/* Seed demo products if empty */
+if (products.length === 0) {
+  products = [
+    { id:1, name:'آيفون 15 برو ماكس', cat:'جوالات', price:750000, oldPrice:850000, desc:'شاشة 6.7 بوصة، كاميرا 48MP، معالج A17 Pro، ذاكرة 256GB', images:[], video:null, date:Date.now() },
+    { id:2, name:'سماعة AirPods Pro 2', cat:'سماعات', price:85000, oldPrice:110000, desc:'عزل ضجيج نشط، صوت مكاني، بطارية 6 ساعات', images:[], video:null, date:Date.now() },
+    { id:3, name:'شاحن سريع 65W', cat:'شواحن', price:15000, oldPrice:20000, desc:'شاحن GaN سريع 65 واط، متوافق مع كل الأجهزة', images:[], video:null, date:Date.now() },
+    { id:4, name:'كفر شفاف مضاد للصدمات', cat:'كفرات', price:5000, oldPrice:0, desc:'حماية عالية، شفاف، مضاد للاصفرار', images:[], video:null, date:Date.now() },
+    { id:5, name:'شاشة حماية زجاج 9H', cat:'شاشات', price:3500, oldPrice:5000, desc:'زجاج مقوى 9H، مضاد للخدش، شفاف تمامًا', images:[], video:null, date:Date.now() },
+    { id:6, name:'س
